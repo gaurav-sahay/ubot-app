@@ -1,0 +1,6 @@
+---
+applications:
+- name: uBotApp
+  instances: 1
+  path: target\uBotApp.jar
+  buildpack: java_buildpack

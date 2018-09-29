@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-2.0.xsd
+
+    http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+	<changeSet author="i351454" id="U-BOT-MASTERDATA-TABLES">
+
+		<!-- <preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="CUSTOMER_INFO" />
+				<tableExists tableName="METER_READING_DETAILS" />
+			</not>
+		</preConditions> -->
+
+		<createTable tableName="CUSTOMER_INFO">
+			<column name="BUSINESS_PARTNER" type="BIGINT">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="CONTRACT_ACCOUNT" type="BIGINT">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="DEVICE" type="INT">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="MOBILE_NO" type="NVARCHAR(20)">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="INSTALLATION" type="BIGINT"/>
+			<column name="MATERIAL_CODE" type="BIGINT"/>
+			<column name="MOVE_IN_DATE" type="DATE" />
+			<column name="MRU" type="NVARCHAR(20)" />
+			<column name="RATE_CATEGORY" type="NVARCHAR(20)" />
+		</createTable>
+		
+		<createTable tableName="METER_READING_DETAILS">
+			<column name="ID" type="BIGINT" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="BILL_AMOUNT" type="DOUBLE"/>
+			<column name="CONSUMPTION" type="BIGINT"/>
+			<column name="DEVICE" type="INT"/>
+			<column name="DUE_DATE" type="DATE"/>
+			<column name="MR_DATE" type="DATE"/>
+			<column name="MR_READ" type="BIGINT"/>
+			<column name="PAID_AMOUNT" type="DOUBLE"/>
+			<column name="PAYMENT_DATE" type="DATE"/>
+		</createTable>
+	</changeSet>
+	
+	<changeSet author="i351454" id="U-BOT-MASTERDATA">
+		<preConditions onFail="MARK_RAN">
+			<sqlCheck expectedResult="0">SELECT COUNT(*) FROM CUSTOMER_INFO
+			</sqlCheck>
+			<sqlCheck expectedResult="0">SELECT COUNT(*) FROM METER_READING_DETAILS</sqlCheck>
+		</preConditions>
+		<loadData file="data/CustomerInfo.csv" quotchar='"' tableName="CUSTOMER_INFO"/>
+		<loadData file="data/MeterReadingDetails.csv" quotchar='"' tableName="METER_READING_DETAILS"/>
+	</changeSet>
+</databaseChangeLog>
