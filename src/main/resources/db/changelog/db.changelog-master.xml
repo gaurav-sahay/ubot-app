@@ -10,12 +10,13 @@
     http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 	<changeSet author="i351454" id="U-BOT-MASTERDATA-TABLES">
 
-		<!-- <preConditions onFail="MARK_RAN">
+		<preConditions onFail="MARK_RAN">
 			<not>
 				<tableExists tableName="CUSTOMER_INFO" />
 				<tableExists tableName="METER_READING_DETAILS" />
+				<tableExists tableName= "CUSTOMER_DETAILS"/>
 			</not>
-		</preConditions> -->
+		</preConditions>
 
 		<createTable tableName="CUSTOMER_INFO">
 			<column name="BUSINESS_PARTNER" type="BIGINT">
@@ -49,6 +50,15 @@
 			<column name="MR_READ" type="BIGINT"/>
 			<column name="PAID_AMOUNT" type="DOUBLE"/>
 			<column name="PAYMENT_DATE" type="DATE"/>
+		</createTable>
+		
+		<createTable tableName="CUSTOMER_DETAILS">
+			<column name="ACCOUNT_NUMBER" type="BIGINT" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="CUST_NAME" type="NVARCHAR(40)"/>
+			<column name="PHONE_NO" type="NVARCHAR(20)"/>
+			<column name="EMAIL" type="NVARCHAR(60)"/>
 		</createTable>
 	</changeSet>
 	

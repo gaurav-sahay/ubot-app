@@ -16,8 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sap.ubot.dto.BillRequestDTO;
 import com.sap.ubot.dto.DateTimeEntity;
 import com.sap.ubot.dto.DurationEntity;
+import com.sap.ubot.dto.NumberEntity;
+import com.sap.ubot.dto.PhoneNumberEntity;
 import com.sap.ubot.dto.ResponseDTO;
 import com.sap.ubot.dto.TextReply;
+import com.sap.ubot.repository.CustomerInfoRepository;
 import com.sap.ubot.service.BillDetailsService;
 
 @RestController
@@ -26,14 +29,26 @@ public class BillDetailsController {
 
 	@Autowired
 	private BillDetailsService billDetailsService;
+	
+	@Autowired
+	private CustomerInfoRepository customerInfoRepository; 
 
 
-	@RequestMapping(value = "/getPaymentHistory",produces = {MediaType.APPLICATION_JSON_VALUE},
+	@RequestMapping(value = "/paymentAndBills/getPaymentHistory",produces = {MediaType.APPLICATION_JSON_VALUE},
 			method = RequestMethod.POST)
 	public ResponseEntity<Object> getPaymentHistory(@RequestBody BillRequestDTO botRequestDTO){
 		DateTimeEntity dateTimeEntity = botRequestDTO.getMemory().getDateTimeEntity();
 		DurationEntity durationEntity = botRequestDTO.getMemory().getDurationEntity();
-		String device = botRequestDTO.getMemory().getDevice().getRaw();
+		
+		NumberEntity contractAccount = botRequestDTO.getMemory().getContractAccountNo();
+		PhoneNumberEntity mobileNo = botRequestDTO.getMemory().getPhoneNo();
+		String device = null;
+		if(contractAccount != null && !StringUtils.isEmpty(contractAccount.getRaw())) {
+			device = customerInfoRepository.findByCustomerInfoKeyContractAccount(Long.parseLong(contractAccount.getRaw())).getCustomerInfoKey().getDevice()+"";
+		}else if(mobileNo != null && !StringUtils.isEmpty(mobileNo.getRaw())) {
+			device = customerInfoRepository.findByCustomerInfoKeyMobileNo(mobileNo.getRaw()).getCustomerInfoKey().getDevice()+"";
+		}
+		
 		String rawDateTime = dateTimeEntity.getRaw();
 		String rawDuration = durationEntity.getRaw();
 		if(!StringUtils.isEmpty(rawDuration)) {
@@ -53,8 +68,14 @@ public class BillDetailsController {
 
 
 	}
-
-
+	
+	@RequestMapping(value = "/paymentAndBills/getOutstandingBill",produces = {MediaType.APPLICATION_JSON_VALUE},
+			method = RequestMethod.POST)
+	public ResponseEntity<Object> getOutstandingBill(@RequestBody BillRequestDTO botRequestDTO){
+		return null;
+		
+	}
+	
 
 	private ResponseDTO fallBackResponseForBillAndPayments(List<Object> replies, TextReply reply) {
 		ResponseDTO fallBackResponseDTO = new ResponseDTO();
