@@ -25,4 +25,6 @@ public class Memory implements Serializable {
 	@JsonProperty("duration")
 	private DurationEntity durationEntity;
 	
+	private String customerIdentifier;
+	
 }
