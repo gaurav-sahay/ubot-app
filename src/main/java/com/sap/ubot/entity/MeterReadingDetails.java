@@ -47,15 +47,15 @@ public class MeterReadingDetails implements Serializable {
 		if(paymentDate == null) {
 			paidDate = "Not Paid";
 		}else {
-			paidDate = paymentDate.toString();
+			paidDate = "Paid on "+paymentDate.toString();
 		}
-		return 	"Meter Reading Date:"+mrDate+"\r\n"+
+		return 	"Meter Reading Date: \r"+mrDate+"\r\n"+
 				/*"Meter Read:\r\n"+mrRead+"\r\n"+*/
-				"Consumption:\r\n"+consumption+"\r\n"+
-				"Bill Amount:\r\n"+billAmount+"\r\n"+
-				"Due Date:\r\n"+dueDate+"\r\n"+
+				"Consumption: \r"+consumption+"\r\n"+
+				"Bill Amount: \r"+billAmount+"\r\n"+
+				"Due Date: \r"+dueDate+"\r\n"+
 				/*"Paid Amount:\r\n"+paidAmount+"\r\n"+*/
-				"Payment Date:"+paidDate;
+				"Paid: \r"+paidDate;
 	}
 	
 	

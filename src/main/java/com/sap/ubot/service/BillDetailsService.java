@@ -26,13 +26,12 @@ public class BillDetailsService {
 	private BillingDetailsRepository billingDetailsRepository;
 	
 	
-	public ResponseDTO getPaymentHistoryByDateTimeAndDevice(DateTimeEntity dateTimeEntity, String device) {
-		QuickReplies quickReplies =  null;
-		List<Object> replies = new ArrayList<>();
-		TextReply reply = new TextReply();
+	public ResponseDTO getPaymentHistoryByDateTimeAndDevice(DateTimeEntity dateTimeEntity, String device, boolean isConsumption) {
+		
 		String currentDate = LocalDate.now().toString();
 		String mrDate = dateTimeEntity.getIso();
 		String rawDateTime = dateTimeEntity.getRaw();
+		QuickReplies quickReplies =  null;
 		if(isCurrent(dateTimeEntity, currentDate)) {
 			mrDate = currentDate;
 			quickReplies = prepareQuickRepliesForCurrentMonthBill();
@@ -42,20 +41,20 @@ public class BillDetailsService {
 			mrDate = LocalDate.now().plusMonths(1).toString();
 		}
 		mrDate = mrDate.substring(0, mrDate.lastIndexOf("-"));
-		MeterReadingDetails meterReadingDetails = billingDetailsRepository.findByMrDate(mrDate,device);
-		reply.setType("text");
-		if(meterReadingDetails != null) {
-			reply.setContent("Your Bill details for "+rawDateTime+
-					"\r\n" + meterReadingDetails.toString());
-			replies.add(reply);
-			if(quickReplies != null) {
-				replies.add(quickReplies);
-			}
-		}else {
-			reply.setContent("Bill details not available for "+rawDateTime);
-			replies.add(reply);
+		MeterReadingDetails meterReadingDetail = billingDetailsRepository.findByMrDate(mrDate,device);
+		String content = null;
+		if(isConsumption) {
+			content = "Your Consumption details ";
+		} else {
+			content = "Your Bill details ";
 		}
-		
+		List<Object> replies = new ArrayList<>();
+		List<MeterReadingDetails> meterReadingDetails = new ArrayList<>();
+		meterReadingDetails.add(meterReadingDetail);
+		prepareResponseDTO(rawDateTime, meterReadingDetails, content, replies, isConsumption);
+		if(quickReplies != null) {
+			replies.add(quickReplies);
+		}
 		ResponseDTO responseDTO = new ResponseDTO();
 		responseDTO.setStatus(HttpStatus.OK.value()+"");
 		responseDTO.setReplies(replies);
@@ -66,9 +65,51 @@ public class BillDetailsService {
 	
 	//need to add validation if user input next 2 months or 3 months payments history. We should reply back saying No bills for future dates 
 	
-	public ResponseDTO getPaymentHistoryByDurationAndDevice(DurationEntity durationEntity, String device/*, String userInput*/) {
+	public ResponseDTO getPaymentHistoryByDurationAndDevice(DurationEntity durationEntity, String device, boolean isConsumption) {
+		String rawDuration = durationEntity.getRaw();
+		List<MeterReadingDetails> meterReadingDetails = getMeterReadingDetailsList(durationEntity, device);
+		String content = null;
+		if(isConsumption) {
+			content = "Your Consumption details ";
+		} else {
+			content = "Your Bill details ";
+		}
 		List<Object> replies = new ArrayList<>();
+		prepareResponseDTO(rawDuration, meterReadingDetails, content, replies,isConsumption);
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus(HttpStatus.OK.value()+"");
+		responseDTO.setReplies(replies);
+		return responseDTO;
+	}
+	
+
+	private void prepareResponseDTO(String rawDuration, List<MeterReadingDetails> meterReadingDetails, String content, List<Object> replies, boolean isConsumption) {
 		TextReply reply = new TextReply();
+		reply.setType("text");
+		if(meterReadingDetails != null && meterReadingDetails.size() != 0) {
+			reply.setContent(content+"for "+rawDuration+"\r\n");
+			replies.add(reply);
+			for(MeterReadingDetails meterReadingDetail : meterReadingDetails) {
+				TextReply textReply = new TextReply();
+				textReply.setType("text");
+				if(isConsumption) {
+					String meterReadingDetailContent = "Meter Reading Date: \r"+meterReadingDetail.getMrDate()+"\r\n"+
+							"Meter Read: \r"+meterReadingDetail.getMrRead()+"\r\n"+
+							"Consumption: \r"+meterReadingDetail.getConsumption()+"\r\n";
+					textReply.setContent(meterReadingDetailContent);
+				}else {
+					textReply.setContent(meterReadingDetail.toString());
+				}
+				replies.add(textReply);
+			}
+		}else {
+			reply.setContent(content+"not available for "+rawDuration);
+			replies.add(reply);
+		}
+		
+	}
+	
+	private List<MeterReadingDetails> getMeterReadingDetailsList(DurationEntity durationEntity, String device){
 		String rawDuration = durationEntity.getRaw();
 		LocalDate localDate = LocalDate.now();
 		String endDate = localDate.toString();
@@ -78,28 +119,10 @@ public class BillDetailsService {
 		}else if(rawDuration.toLowerCase().contains("year")) {
 			startDate = localDate.minusYears((long) durationEntity.getYears()).toString();
 		}
-		List<MeterReadingDetails> meterReadingDetails = billingDetailsRepository.findByMrDateRange(startDate, endDate, device);
-		reply.setType("text");
-		if(/*!userInput.toLowerCase().contains("next") &&*/ meterReadingDetails != null && meterReadingDetails.size() != 0) {
-			reply.setContent("Your Bill details for "+rawDuration+"\r\n");
-			replies.add(reply);
-			for(MeterReadingDetails meterReadingDetail : meterReadingDetails) {
-				TextReply textReply = new TextReply();
-				textReply.setType("text");
-				textReply.setContent(meterReadingDetail.toString());
-				replies.add(textReply);
-			}
-		}else {
-			reply.setContent("Bill details not available for "+rawDuration);
-			replies.add(reply);
-		}
-
-		ResponseDTO responseDTO = new ResponseDTO();
-		responseDTO.setStatus(HttpStatus.OK.value()+"");
-		responseDTO.setReplies(replies);
-		return responseDTO;
-		
+		return billingDetailsRepository.findByMrDateRange(startDate, endDate, device);
 	}
+	
+	
 	private boolean isCurrent(DateTimeEntity dateTimeEntity, String currentDate) {
 		if(dateTimeEntity.getRaw() != null) {
 			if(StringUtils.isEmpty(dateTimeEntity.getIso()) && dateTimeEntity.getRaw().toLowerCase().contains("current")) {

@@ -38,95 +38,34 @@ public class BillDetailsController {
 	@RequestMapping(value = "/paymentAndBills/getPaymentHistory",produces = {MediaType.APPLICATION_JSON_VALUE},
 			method = RequestMethod.POST)
 	public ResponseEntity<Object> getPaymentHistory(@RequestBody BillRequestDTO botRequestDTO){
-		DateTimeEntity dateTimeEntity = botRequestDTO.getMemory().getDateTimeEntity();
-		DurationEntity durationEntity = botRequestDTO.getMemory().getDurationEntity();
-		
-		NumberEntity contractAccount = botRequestDTO.getMemory().getContractAccountNo();
-		PhoneNumberEntity mobileNo = botRequestDTO.getMemory().getPhoneNo();
-		/*String customerIdentifier = botRequestDTO.getMemory().getCustomerIdentifier();
-		if(customerIdentifier.equals("cust-phone") && StringUtils.isEmpty(mobileNo.getRaw())) {
-			TextReply reply = new TextReply();
-			reply.setType("text");
-			reply.setContent("Sorry the phone number provided is not in correct format :( \r\n"
-					+ "Please re-enter your phone number e.g +91-1234567890");
-			ResponseDTO fallBackResponseDTO = fallBackResponse(reply);
-			return new ResponseEntity<>(fallBackResponseDTO,HttpStatus.BAD_REQUEST);
-		}else if(customerIdentifier.equals("cust-account-number") && StringUtils.isEmpty(contractAccount.getRaw())) {
-			TextReply reply = new TextReply();
-			reply.setType("text");
-			reply.setContent("Sorry the account number provided is not correct :( \r\n"
-					+ "Please re-enter your account number");
-			ResponseDTO fallBackResponseDTO = fallBackResponse(reply);
-			return new ResponseEntity<>(fallBackResponseDTO,HttpStatus.BAD_REQUEST);
-		}*/
-		String device = null;
-		if(contractAccount != null && !StringUtils.isEmpty(contractAccount.getRaw())) {
-			CustomerInfo customerInfo= null;
-			try {
-				customerInfo = customerInfoRepository.findByCustomerInfoKeyContractAccount(Long.parseLong(contractAccount.getRaw()));
-			} catch (NumberFormatException numberFormatException) {
-				TextReply reply = new TextReply();
-				reply.setType("text");
-				reply.setContent("Sorry the phone number provided is not in correct format :( \r\n"
-						+ "Please re-enter your phone number e.g +91-1234567890");
-				ResponseDTO fallBackResponseDTO = fallBackResponse(reply);
-				return new ResponseEntity<>(fallBackResponseDTO,HttpStatus.BAD_REQUEST);
-			}
-			if(customerInfo == null) {
-				TextReply reply = new TextReply();
-				reply.setType("text");
-				reply.setContent("It seems you haven't initiated the request for the connection :( \r\n"
-						+ "Please go to : payments and bills -> connection related -> move-in ");
-				ResponseDTO fallBackResponseDTO = fallBackResponse(reply);
-				return new ResponseEntity<>(fallBackResponseDTO,HttpStatus.NOT_FOUND);
-			}
-			device = customerInfo.getCustomerInfoKey().getDevice()+"";
-			
-		}else if(mobileNo != null && !StringUtils.isEmpty(mobileNo.getRaw())) {
-			CustomerInfo customerInfo = customerInfoRepository.findByCustomerInfoKeyMobileNo(mobileNo.getRaw());
-			if(customerInfo == null) {
-				TextReply reply = new TextReply();
-				reply.setType("text");
-				reply.setContent("It seems you haven't initiated the request for the connection :( \r\n"
-						+ "Please go to : payments and bills -> connection related -> move-in ");
-				ResponseDTO fallBackResponseDTO = fallBackResponse(reply);
-				return new ResponseEntity<>(fallBackResponseDTO,HttpStatus.NOT_FOUND);
-			}
-			device = customerInfo.getCustomerInfoKey().getDevice()+"";
-		}
-		
-		String rawDateTime = dateTimeEntity.getRaw();
-		String rawDuration = durationEntity.getRaw();
-		if(!StringUtils.isEmpty(rawDuration)) {
-			ResponseDTO responseDTO = billDetailsService.getPaymentHistoryByDurationAndDevice(durationEntity, device);
-			return new ResponseEntity<>(responseDTO,HttpStatus.OK);
-			
-		} else if(!StringUtils.isEmpty(rawDateTime)) {
-			ResponseDTO responseDTO = billDetailsService.getPaymentHistoryByDateTimeAndDevice(dateTimeEntity, device);
-			return new ResponseEntity<>(responseDTO,HttpStatus.OK);
-
-		} else {
-			TextReply reply = new TextReply();
-			reply.setType("text");
-			reply.setContent("Sorry I didn't get you :( \r\n"
-					+ "Please re-enter Month and Year!");
-			ResponseDTO fallBackResponseDTO = fallBackResponse(reply);
-			return new ResponseEntity<>(fallBackResponseDTO,HttpStatus.BAD_REQUEST);
-		}
+		return getPaymentOrConsumptionResponse(botRequestDTO,false);
 
 
 	}
+
+	
 	
 	@RequestMapping(value = "/paymentAndBills/getConsumptionDetails",produces = {MediaType.APPLICATION_JSON_VALUE},
 			method = RequestMethod.POST)
 	public ResponseEntity<Object> getConsumptionDetails(@RequestBody BillRequestDTO botRequestDTO){
-		return null;
+		return getPaymentOrConsumptionResponse(botRequestDTO,true);
+		
 		
 	}
+	
+	
 	
 	@RequestMapping(value = "/paymentAndBills/getOutstandingBill",produces = {MediaType.APPLICATION_JSON_VALUE},
 			method = RequestMethod.POST)
 	public ResponseEntity<Object> getOutstandingBill(@RequestBody BillRequestDTO botRequestDTO){
+		NumberEntity contractAccount = botRequestDTO.getMemory().getContractAccountNo();
+		PhoneNumberEntity mobileNo = botRequestDTO.getMemory().getPhoneNo();
+		ResponseDTO responseDTO = null;
+		String device = retrieveCustomerDevice(responseDTO,contractAccount,mobileNo);
+		
+		if(StringUtils.isEmpty(device)) {
+			return new ResponseEntity<>(responseDTO,HttpStatus.BAD_REQUEST);
+		}
 		return null;
 		
 	}
@@ -134,12 +73,77 @@ public class BillDetailsController {
 	@RequestMapping(value = "/paymentAndBills/getBillingComplaints",produces = {MediaType.APPLICATION_JSON_VALUE},
 			method = RequestMethod.POST)
 	public ResponseEntity<Object> getBillingComplaints(@RequestBody BillRequestDTO botRequestDTO){
+		
+		
 		return null;
 		
 	}
 	
+	
+	private ResponseEntity<Object> getPaymentOrConsumptionResponse(BillRequestDTO botRequestDTO, boolean isConsumption) {
+		DateTimeEntity dateTimeEntity = botRequestDTO.getMemory().getDateTimeEntity();
+		DurationEntity durationEntity = botRequestDTO.getMemory().getDurationEntity();
+		
+		NumberEntity contractAccount = botRequestDTO.getMemory().getContractAccountNo();
+		PhoneNumberEntity mobileNo = botRequestDTO.getMemory().getPhoneNo();
+		String rawDateTime = dateTimeEntity.getRaw();
+		String rawDuration = durationEntity.getRaw();
+		ResponseDTO responseDTO = null;
+		String device = retrieveCustomerDevice(responseDTO,contractAccount,mobileNo);
+		if(StringUtils.isEmpty(device)) {
+			return new ResponseEntity<>(responseDTO,HttpStatus.BAD_REQUEST);
+		}
+		if(!StringUtils.isEmpty(rawDuration)) {
+			responseDTO = billDetailsService.getPaymentHistoryByDurationAndDevice(durationEntity, device, isConsumption);
+			return new ResponseEntity<>(responseDTO,HttpStatus.OK);
+			
+		}
+		if(!StringUtils.isEmpty(rawDateTime)) {
+			responseDTO = billDetailsService.getPaymentHistoryByDateTimeAndDevice(dateTimeEntity, device, isConsumption);
+			return new ResponseEntity<>(responseDTO,HttpStatus.OK);
 
-	private ResponseDTO fallBackResponse(TextReply reply) {
+		} 
+		String content = "Sorry I didn't get you :( \r\n"
+				+ "Please re-enter Month and Year!";
+		ResponseDTO fallBackResponseDTO = fallBackResponse(content);
+		return new ResponseEntity<>(fallBackResponseDTO,HttpStatus.BAD_REQUEST);
+	}
+	
+	private String retrieveCustomerDevice(ResponseDTO fallBackResponseDTO, NumberEntity contractAccount, PhoneNumberEntity mobileNo) {
+		CustomerInfo customerInfo= null;
+		if(contractAccount != null && !StringUtils.isEmpty(contractAccount.getRaw())) {
+			try {
+				customerInfo = customerInfoRepository.findByCustomerInfoKeyContractAccount(Long.parseLong(contractAccount.getRaw()));
+			} catch (NumberFormatException numberFormatException) {
+				String content = "Sorry the phone number provided is not in correct format :( \r\n"
+						+ "Please re-enter your phone number e.g +91-1234567890";
+				fallBackResponseDTO = fallBackResponse(content);
+				return null;
+			}
+			if(customerInfo == null) {
+				String content = "It seems you haven't initiated the request for the connection :( \r\n"
+						+ "Please go to : payments and bills -> connection related -> move-in ";
+				fallBackResponseDTO = fallBackResponse(content);
+				return null;
+			}
+			
+		}else if(mobileNo != null && !StringUtils.isEmpty(mobileNo.getRaw())) {
+			customerInfo = customerInfoRepository.findByCustomerInfoKeyMobileNo(mobileNo.getRaw());
+			if(customerInfo == null) {
+				String content = "It seems you haven't initiated the request for the connection :( \r\n"
+						+ "Please go to : Main Menu -> connection related -> move-in ";
+				fallBackResponseDTO = fallBackResponse(content);
+				return null;
+			}
+			
+		}
+		return customerInfo.getCustomerInfoKey().getDevice()+"";
+	}
+
+	private ResponseDTO fallBackResponse(String content) {
+		TextReply reply = new TextReply();
+		reply.setType("text");
+		reply.setContent(content);
 		ResponseDTO fallBackResponseDTO = new ResponseDTO();
 		fallBackResponseDTO.setStatus(HttpStatus.OK.value()+"");
 		List<Object> fallBackReplies = new ArrayList<>();
