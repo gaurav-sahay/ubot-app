@@ -36,6 +36,7 @@
 			<column name="MOVE_IN_DATE" type="DATE" />
 			<column name="MRU" type="NVARCHAR(20)" />
 			<column name="RATE_CATEGORY" type="NVARCHAR(20)" />
+			<column name="CONNECTION_STATE" type="INT"/>
 		</createTable>
 		
 		<createTable tableName="METER_READING_DETAILS">

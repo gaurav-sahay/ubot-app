@@ -34,7 +34,7 @@ public class BillDetailsService {
 		QuickReplies quickReplies =  null;
 		if(isCurrent(dateTimeEntity, currentDate)) {
 			mrDate = currentDate;
-			quickReplies = prepareQuickRepliesForCurrentMonthBill();
+			//quickReplies = prepareQuickRepliesForCurrentMonthBill();
 		}else if(StringUtils.isEmpty(mrDate)  && (rawDateTime.toLowerCase().contains("last") || rawDateTime.toLowerCase().contains("previous"))) {
 			mrDate = LocalDate.now().minusMonths(1).toString();
 		}else if(StringUtils.isEmpty(mrDate)  && rawDateTime.toLowerCase().contains("next")) {
@@ -80,6 +80,43 @@ public class BillDetailsService {
 		responseDTO.setStatus(HttpStatus.OK.value()+"");
 		responseDTO.setReplies(replies);
 		return responseDTO;
+	}
+	
+	
+	
+	public ResponseDTO getOutstandingBalance(String device) {
+		
+		float totalSum = 0.0f;
+		float totalPenalty = 0.0f;
+		List<Object> replies = new ArrayList<>();
+		TextReply reply = new TextReply();
+		String content = null;
+		reply.setType("text");
+		
+		List<MeterReadingDetails> meterReadingDetails = billingDetailsRepository.findOustandingBalance(device);
+		if(meterReadingDetails != null && meterReadingDetails.size() != 0) {
+			totalPenalty = 50 * meterReadingDetails.size();
+			for(MeterReadingDetails meterReadingDetail: meterReadingDetails) {
+				totalSum+=meterReadingDetail.getBillAmount();
+			}
+			
+			content = "Total outstanding bill: \r"+totalSum+".\r\n"+
+					 "Late fee charges: \r"+totalPenalty+".\r\n"+
+					 "Amount payable : \r"+(totalSum+totalPenalty)+".\r\n"+
+					 "Do you want to pay now ?";
+		}else {
+			
+			content = "No outstanding balace.";
+		}
+		
+		reply.setContent(content);
+		replies.add(reply);
+		ResponseDTO responseDTO = new ResponseDTO();
+		responseDTO.setStatus(HttpStatus.OK.value()+"");
+		responseDTO.setReplies(replies);
+		return responseDTO;
+		
+		
 	}
 	
 

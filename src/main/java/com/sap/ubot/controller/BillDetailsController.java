@@ -17,12 +17,12 @@ import com.sap.ubot.dto.BillRequestDTO;
 import com.sap.ubot.dto.DateTimeEntity;
 import com.sap.ubot.dto.DurationEntity;
 import com.sap.ubot.dto.NumberEntity;
-import com.sap.ubot.dto.PhoneNumberEntity;
 import com.sap.ubot.dto.ResponseDTO;
 import com.sap.ubot.dto.TextReply;
 import com.sap.ubot.entity.CustomerInfo;
 import com.sap.ubot.repository.CustomerInfoRepository;
 import com.sap.ubot.service.BillDetailsService;
+import com.sap.ubot.util.ConnectionStates;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -58,15 +58,18 @@ public class BillDetailsController {
 	@RequestMapping(value = "/paymentAndBills/getOutstandingBill",produces = {MediaType.APPLICATION_JSON_VALUE},
 			method = RequestMethod.POST)
 	public ResponseEntity<Object> getOutstandingBill(@RequestBody BillRequestDTO botRequestDTO){
-		NumberEntity contractAccount = botRequestDTO.getMemory().getContractAccountNo();
-		PhoneNumberEntity mobileNo = botRequestDTO.getMemory().getPhoneNo();
-		ResponseDTO responseDTO = null;
-		String device = retrieveCustomerDevice(responseDTO,contractAccount,mobileNo);
+		NumberEntity registeredId = botRequestDTO.getMemory().getRegisteredId();
+		ResponseDTO responseDTO = new ResponseDTO();
+		String device = retrieveCustomerDevice(responseDTO,registeredId);
 		
 		if(StringUtils.isEmpty(device)) {
 			return new ResponseEntity<>(responseDTO,HttpStatus.BAD_REQUEST);
 		}
-		return null;
+		responseDTO  = billDetailsService.getOutstandingBalance(device);
+		if(responseDTO != null) {
+			return new ResponseEntity<>(responseDTO,HttpStatus.OK);
+		}
+		return new ResponseEntity<>(null,HttpStatus.BAD_REQUEST); 
 		
 	}
 	
@@ -84,12 +87,11 @@ public class BillDetailsController {
 		DateTimeEntity dateTimeEntity = botRequestDTO.getMemory().getDateTimeEntity();
 		DurationEntity durationEntity = botRequestDTO.getMemory().getDurationEntity();
 		
-		NumberEntity contractAccount = botRequestDTO.getMemory().getContractAccountNo();
-		PhoneNumberEntity mobileNo = botRequestDTO.getMemory().getPhoneNo();
+		NumberEntity registeredId = botRequestDTO.getMemory().getRegisteredId();
 		String rawDateTime = dateTimeEntity.getRaw();
 		String rawDuration = durationEntity.getRaw();
-		ResponseDTO responseDTO = null;
-		String device = retrieveCustomerDevice(responseDTO,contractAccount,mobileNo);
+		ResponseDTO responseDTO = new ResponseDTO();
+		String device = retrieveCustomerDevice(responseDTO,registeredId);
 		if(StringUtils.isEmpty(device)) {
 			return new ResponseEntity<>(responseDTO,HttpStatus.BAD_REQUEST);
 		}
@@ -103,49 +105,49 @@ public class BillDetailsController {
 			return new ResponseEntity<>(responseDTO,HttpStatus.OK);
 
 		} 
-		String content = "Sorry I didn't get you :( \r\n"
+		String content = "Sorry I didn't get you. \r\n"
 				+ "Please re-enter Month and Year!";
-		ResponseDTO fallBackResponseDTO = fallBackResponse(content);
-		return new ResponseEntity<>(fallBackResponseDTO,HttpStatus.BAD_REQUEST);
+		fallBackResponse(content,responseDTO);
+		return new ResponseEntity<>(responseDTO,HttpStatus.BAD_REQUEST);
 	}
 	
-	private String retrieveCustomerDevice(ResponseDTO fallBackResponseDTO, NumberEntity contractAccount, PhoneNumberEntity mobileNo) {
+	private String retrieveCustomerDevice(ResponseDTO fallBackResponseDTO, NumberEntity registeredId) {
 		CustomerInfo customerInfo= null;
-		if(contractAccount != null && !StringUtils.isEmpty(contractAccount.getRaw())) {
+		if(registeredId != null && !StringUtils.isEmpty(registeredId.getRaw())) {
 			try {
-				customerInfo = customerInfoRepository.findByCustomerInfoKeyContractAccount(Long.parseLong(contractAccount.getRaw()));
+				customerInfo = customerInfoRepository.findByCustomerInfoKeyContractAccountOrCustomerInfoKeyMobileNo(Long.parseLong(registeredId.getRaw()), 
+						registeredId.getRaw());
 			} catch (NumberFormatException numberFormatException) {
-				String content = "Sorry the phone number provided is not in correct format :( \r\n"
-						+ "Please re-enter your phone number e.g +91-1234567890";
-				fallBackResponseDTO = fallBackResponse(content);
+				String content = "Sorry the phone number or account number provided is not in correct format. \r\n";
+				fallBackResponse(content,fallBackResponseDTO);
 				return null;
 			}
 			if(customerInfo == null) {
-				String content = "It seems you haven't initiated the request for the connection :( \r\n"
-						+ "Please go to : payments and bills -> connection related -> move-in ";
-				fallBackResponseDTO = fallBackResponse(content);
-				return null;
-			}
-			
-		}else if(mobileNo != null && !StringUtils.isEmpty(mobileNo.getRaw())) {
-			customerInfo = customerInfoRepository.findByCustomerInfoKeyMobileNo(mobileNo.getRaw());
-			if(customerInfo == null) {
-				String content = "It seems you haven't initiated the request for the connection :( \r\n"
-						+ "Please go to : Main Menu -> connection related -> move-in ";
-				fallBackResponseDTO = fallBackResponse(content);
+				String content = "It seems you haven't initiated the request for the connection. \r\n"
+						+ "Please go to Main Menu.\r\n"
+						+ "Then to connection related.\r\n"
+						+ "Then to move-in. ";
+				fallBackResponse(content, fallBackResponseDTO);
 				return null;
 			}
 			
 		}
+		if(customerInfo.getConnectionState() == ConnectionStates.DISCONNECTED.getState() || 
+				customerInfo.getConnectionState() == ConnectionStates.TEMP_DISCONNECTED.getState()) {
+			String content = "Your connection is disconnected. \r\n"+
+							 "Please initiate the re-connection request!";
+			fallBackResponse(content,fallBackResponseDTO);
+			return null;
+		}
 		return customerInfo.getCustomerInfoKey().getDevice()+"";
 	}
 
-	private ResponseDTO fallBackResponse(String content) {
+	private ResponseDTO fallBackResponse(String content, ResponseDTO fallBackResponseDTO) {
 		TextReply reply = new TextReply();
 		reply.setType("text");
 		reply.setContent(content);
-		ResponseDTO fallBackResponseDTO = new ResponseDTO();
-		fallBackResponseDTO.setStatus(HttpStatus.OK.value()+"");
+		//ResponseDTO fallBackResponseDTO = new ResponseDTO();
+		fallBackResponseDTO.setStatus(HttpStatus.BAD_REQUEST.value()+"");
 		List<Object> fallBackReplies = new ArrayList<>();
 		fallBackReplies.add(reply);
 		fallBackResponseDTO.setReplies(fallBackReplies);

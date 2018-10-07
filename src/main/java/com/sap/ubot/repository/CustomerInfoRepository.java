@@ -11,6 +11,6 @@ public interface CustomerInfoRepository extends CrudRepository<CustomerInfo, Cus
 	
 	public CustomerInfo findByCustomerInfoKeyMobileNo(@Param("mobileNo") String mobileNo);
 	
-	public CustomerInfo findByCustomerInfoKeyContractAccount(@Param("contractAccount") long contractAccount);
+	public CustomerInfo findByCustomerInfoKeyContractAccountOrCustomerInfoKeyMobileNo(@Param("contractAccount") long contractAccount, @Param("mobileNo") String mobileNo);
 
 }

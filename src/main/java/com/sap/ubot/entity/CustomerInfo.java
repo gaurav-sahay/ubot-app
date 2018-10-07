@@ -28,6 +28,6 @@ public class CustomerInfo implements Serializable {
 	private long materialCode;
 	private Date moveInDate;
 	private String mru;
-	
+	private int connectionState;
 
 }

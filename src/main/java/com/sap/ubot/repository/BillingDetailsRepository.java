@@ -18,5 +18,8 @@ public interface BillingDetailsRepository extends CrudRepository<MeterReadingDet
 	@Query(value = "SELECT * FROM METER_READING_DETAILS WHERE MR_DATE BETWEEN :startDate AND :endDate AND DEVICE = :device", nativeQuery=true)
 	public List<MeterReadingDetails> findByMrDateRange(@Param("startDate") String startDate,@Param("endDate") String endDate, @Param("device") String device);
 	
+	@Query(value = "SELECT * FROM METER_READING_DETAILS WHERE MR_DATE <= GETDATE() AND PAID_AMOUNT = 0.0 AND PAYMENT_DATE IS NULL AND DEVICE = :device", nativeQuery=true)
+	public List<MeterReadingDetails> findOustandingBalance(@Param("device") String device);
+	
 	
 }
