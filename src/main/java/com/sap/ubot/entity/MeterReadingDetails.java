@@ -49,13 +49,13 @@ public class MeterReadingDetails implements Serializable {
 		}else {
 			paidDate = "Paid on "+paymentDate.toString();
 		}
-		return 	"Meter Reading Date: \r"+mrDate+"\r\n"+
+		return 	"Meter Reading Date: \r"+mrDate+".\r\n"+
 				/*"Meter Read:\r\n"+mrRead+"\r\n"+*/
-				"Consumption: \r"+consumption+"\r\n"+
-				"Bill Amount: \r"+billAmount+"\r\n"+
-				"Due Date: \r"+dueDate+"\r\n"+
+				"Consumption: \r"+consumption+" units.\r\n"+
+				"Bill Amount: \r Rs."+billAmount+".\r\n"+
+				"Due Date: \r"+dueDate+".\r\n"+
 				/*"Paid Amount:\r\n"+paidAmount+"\r\n"+*/
-				"Paid: \r"+paidDate;
+				"Payment Status : \r"+paidDate+".\r\n\n";
 	}
 	
 	

@@ -31,10 +31,12 @@ public class BillDetailsService {
 		String currentDate = LocalDate.now().toString();
 		String mrDate = dateTimeEntity.getIso();
 		String rawDateTime = dateTimeEntity.getRaw();
-		QuickReplies quickReplies =  null;
+		//QuickReplies quickReplies =  null;
+		//String currentMonthContent = null;
 		if(isCurrent(dateTimeEntity, currentDate)) {
 			mrDate = currentDate;
 			//quickReplies = prepareQuickRepliesForCurrentMonthBill();
+			//currentMonthContent = "Do you want to pay now ?";
 		}else if(StringUtils.isEmpty(mrDate)  && (rawDateTime.toLowerCase().contains("last") || rawDateTime.toLowerCase().contains("previous"))) {
 			mrDate = LocalDate.now().minusMonths(1).toString();
 		}else if(StringUtils.isEmpty(mrDate)  && rawDateTime.toLowerCase().contains("next")) {
@@ -52,9 +54,13 @@ public class BillDetailsService {
 		List<MeterReadingDetails> meterReadingDetails = new ArrayList<>();
 		meterReadingDetails.add(meterReadingDetail);
 		prepareResponseDTO(rawDateTime, meterReadingDetails, content, replies, isConsumption);
-		if(quickReplies != null) {
+		/*if(quickReplies != null) {
 			replies.add(quickReplies);
-		}
+		}*/
+		/*if(!StringUtils.isEmpty(currentMonthContent)) {
+			TextReply textReply = (TextReply)replies.get(0);
+			textReply.setContent(textReply.getContent().toString()+currentMonthContent);
+		}*/
 		ResponseDTO responseDTO = new ResponseDTO();
 		responseDTO.setStatus(HttpStatus.OK.value()+"");
 		responseDTO.setReplies(replies);
@@ -100,9 +106,9 @@ public class BillDetailsService {
 				totalSum+=meterReadingDetail.getBillAmount();
 			}
 			
-			content = "Total outstanding bill: \r"+totalSum+".\r\n"+
-					 "Late fee charges: \r"+totalPenalty+".\r\n"+
-					 "Amount payable : \r"+(totalSum+totalPenalty)+".\r\n"+
+			content = "Total outstanding bill: \r Rs."+totalSum+".\r\n"+
+					 "Late fee charges: \r Rs."+totalPenalty+".\r\n"+
+					 "Amount payable : \r Rs."+(totalSum+totalPenalty)+".\r\n"+
 					 "Do you want to pay now ?";
 		}else {
 			
@@ -124,25 +130,31 @@ public class BillDetailsService {
 		TextReply reply = new TextReply();
 		reply.setType("text");
 		if(meterReadingDetails != null && meterReadingDetails.size() != 0) {
-			reply.setContent(content+"for "+rawDuration+"\r\n");
-			replies.add(reply);
+			content += "for "+rawDuration+".\r\n";
+			//reply.setContent();
+			//replies.add(reply);
 			for(MeterReadingDetails meterReadingDetail : meterReadingDetails) {
-				TextReply textReply = new TextReply();
-				textReply.setType("text");
+				//TextReply textReply = new TextReply();
+				//textReply.setType("text");
 				if(isConsumption) {
-					String meterReadingDetailContent = "Meter Reading Date: \r"+meterReadingDetail.getMrDate()+"\r\n"+
-							"Meter Read: \r"+meterReadingDetail.getMrRead()+"\r\n"+
-							"Consumption: \r"+meterReadingDetail.getConsumption()+"\r\n";
-					textReply.setContent(meterReadingDetailContent);
+					String meterReadingDetailContent = "Meter Reading Date: \r"+meterReadingDetail.getMrDate()+".\r\n"+
+							"Meter Read: \r"+meterReadingDetail.getMrRead()+" units.\r\n"+
+							"Consumption: \r"+meterReadingDetail.getConsumption()+" units.\r\n\n";
+					content += meterReadingDetailContent;
+					//textReply.setContent(meterReadingDetailContent);
 				}else {
-					textReply.setContent(meterReadingDetail.toString());
+					content += meterReadingDetail.toString();
+					//reply.setContent(meterReadingDetail.toString());
 				}
-				replies.add(textReply);
+				//replies.add(textReply);
 			}
+			reply.setContent(content);
+			replies.add(reply);
 		}else {
 			reply.setContent(content+"not available for "+rawDuration);
 			replies.add(reply);
 		}
+		
 		
 	}
 	
