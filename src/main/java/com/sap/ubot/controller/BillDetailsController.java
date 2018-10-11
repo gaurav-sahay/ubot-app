@@ -142,16 +142,14 @@ public class BillDetailsController {
 		return customerInfo.getCustomerInfoKey().getDevice()+"";
 	}
 
-	private ResponseDTO fallBackResponse(String content, ResponseDTO fallBackResponseDTO) {
+	private void fallBackResponse(String content, ResponseDTO fallBackResponseDTO) {
 		TextReply reply = new TextReply();
 		reply.setType("text");
 		reply.setContent(content);
-		//ResponseDTO fallBackResponseDTO = new ResponseDTO();
 		fallBackResponseDTO.setStatus(HttpStatus.BAD_REQUEST.value()+"");
 		List<Object> fallBackReplies = new ArrayList<>();
 		fallBackReplies.add(reply);
 		fallBackResponseDTO.setReplies(fallBackReplies);
-		return fallBackResponseDTO;
 	}
 	
 

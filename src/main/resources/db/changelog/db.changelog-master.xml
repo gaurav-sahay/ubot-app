@@ -10,14 +10,17 @@
     http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 	<changeSet author="i351454" id="U-BOT-MASTERDATA-TABLES">
 
+		
 		<preConditions onFail="MARK_RAN">
 			<not>
 				<tableExists tableName="CUSTOMER_INFO" />
 				<tableExists tableName="METER_READING_DETAILS" />
 				<tableExists tableName= "CUSTOMER_DETAILS"/>
+				<tableExists tableName="TECHNICIAN_DETAILS"/>
+				<tableExists tableName="TECHNICIAN_ASSIGNMENT_DETAILS"/>
 			</not>
 		</preConditions>
-
+		
 		<createTable tableName="CUSTOMER_INFO">
 			<column name="BUSINESS_PARTNER" type="BIGINT">
 				<constraints primaryKey="true" nullable="false" />
@@ -61,15 +64,55 @@
 			<column name="PHONE_NO" type="NVARCHAR(20)"/>
 			<column name="EMAIL" type="NVARCHAR(60)"/>
 		</createTable>
+		<createTable tableName="TECHNICIAN_DETAILS">
+			<column name="TECH_ID" type="BIGINT" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="TECH_NAME" type="NVARCHAR(40)"/>
+			<column name="TECH_PHONE_NO" type="NVARCHAR(20)"/>
+			<column name="CREATED_ON" type="DATE"/>
+		</createTable>
+		<createTable tableName="TECHNICIAN_ASSIGNMENT_DETAILS">
+			<column name="ASSIGNMENT_ID" type="BIGINT" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false" />
+			</column>
+			<column name="TECH_ID" type="BIGINT"/>
+			<column name="BUSINESS_PARTNER" type="BIGINT"/>
+			<column name="CONTRACT_ACCOUNT" type="BIGINT"/>
+			<column name="DEVICE" type="INT"/>
+			<column name="MOBILE_NO" type="NVARCHAR(20)"/>
+			<column name="SCHEDULED_TIME" type="DATETIME"/>
+			<column name="NEXT_AVAILABLE_TIME" type="DATETIME"/>
+		</createTable>
 	</changeSet>
 	
 	<changeSet author="i351454" id="U-BOT-MASTERDATA">
 		<preConditions onFail="MARK_RAN">
-			<sqlCheck expectedResult="0">SELECT COUNT(*) FROM CUSTOMER_INFO
-			</sqlCheck>
+			<sqlCheck expectedResult="0">SELECT COUNT(*) FROM CUSTOMER_INFO</sqlCheck>
 			<sqlCheck expectedResult="0">SELECT COUNT(*) FROM METER_READING_DETAILS</sqlCheck>
+			<sqlCheck expectedResult="0">SELECT COUNT(*) FROM TECHNICIAN_DETAILS</sqlCheck>
 		</preConditions>
 		<loadData file="data/CustomerInfo.csv" quotchar='"' tableName="CUSTOMER_INFO"/>
 		<loadData file="data/MeterReadingDetails.csv" quotchar='"' tableName="METER_READING_DETAILS"/>
+		<loadData file="data/TechnicianDetails.csv" quotchar='"' tableName="TECHNICIAN_DETAILS"/>
 	</changeSet>
+	
+	<!-- 
+		Do not uncomment unless really required to drop the tables and reset everything 
+		Also you need to delete the data from 'DATABASECHANGELOGLOCK' and 'DATABASECHANGELOG' tables manually from the db.
+	-->
+	<!-- <changeSet author="i351454" id="U-BOT-MASTERDATA_DROP">
+		<preConditions onFail="MARK_RAN">
+			<tableExists tableName="CUSTOMER_INFO" />
+			<tableExists tableName="METER_READING_DETAILS"/>
+			<tableExists tableName= "CUSTOMER_DETAILS"/>
+			<tableExists tableName="TECHNICIAN_DETAILS"/>
+			<tableExists tableName="TECHNICIAN_ASSIGNMENT_DETAILS"/>
+		</preConditions>
+		<dropTable tableName="CUSTOMER_INFO"/>
+		<dropTable tableName="METER_READING_DETAILS"/>
+		<dropTable tableName="CUSTOMER_DETAILS"/>
+		<dropTable tableName="TECHNICIAN_DETAILS"/>
+		<dropTable tableName="TECHNICIAN_ASSIGNMENT_DETAILS"/> 
+	</changeSet>-->
 </databaseChangeLog>
