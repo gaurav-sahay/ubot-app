@@ -55,18 +55,19 @@ public class SupportAndComplaintsService {
 			if(technicianEntity == null) {
 				for (TechnicianEntity technician : technicians) {
 					if (checkTechnicianAvailability(technician, scheduleTime)) {
-						assignTechnician(technician, customerInfo, scheduleTime);
-						content = "Your technician has been assigned for "+scheduleTime+".\r\n"+
-								"Your Technician details:\r\n"+
-								"Name: "+technician.getTechName()+".\r\n"+
-								"Contact No:"+technician.getTechPhoneNo()+".\r\n"+
-								"You will be receiving sms notification on your registered number.";
+						long serviceReqId = assignTechnician(technician, customerInfo, scheduleTime);
+						content = "Your service request (SR No:"+serviceReqId+") has been created.\r\n"+
+								  "Your technician has been assigned for "+scheduleTime+".\r\n"+
+								  "Your Technician details:\r\n"+
+								  "Name: "+technician.getTechName()+".\r\n"+
+								  "Contact No:"+technician.getTechPhoneNo()+".\r\n"+
+								  "You will be receiving sms notification on your registered number.";
 						
 						prepareResponseDTO(replies,content);
 						responseDTO.setStatus(HttpStatus.OK.value() + "");
 						responseDTO.setReplies(replies);
 						try {
-							String smsContent = "Your technician has been assigned for "+scheduleTime+". "+
+							String smsContent = "(SR No:"+serviceReqId+")Your technician has been assigned for "+scheduleTime+". "+
 									"Your Technician details: "+
 									"Name: "+technician.getTechName()+". "+
 									"Contact No:"+technician.getTechPhoneNo()+". ";
@@ -79,8 +80,9 @@ public class SupportAndComplaintsService {
 					}
 				}
 			} else {
-				assignTechnician(technicianEntity, customerInfo, scheduleTime);
-				content = "Your technician has been assigned for "+scheduleTime+". \r\n"+
+				long serviceReqId = assignTechnician(technicianEntity, customerInfo, scheduleTime);
+				content = "Your service request (SR No:"+serviceReqId+") has been created.\r\n"+
+						"Your technician has been assigned for "+scheduleTime+". \r\n"+
 						"Your Technician details: \r\n"+
 						"Name: "+technicianEntity.getTechName()+" .\r\n"+
 						"Contact No:"+technicianEntity.getTechPhoneNo()+" .\r\n"+
@@ -88,6 +90,16 @@ public class SupportAndComplaintsService {
 				prepareResponseDTO(replies,content);
 				responseDTO.setStatus(HttpStatus.OK.value() + "");
 				responseDTO.setReplies(replies);
+				try {
+					String smsContent = "(SR No:"+serviceReqId+")Your technician has been assigned for "+scheduleTime+". "+
+							"Your Technician details: "+
+							"Name: "+technicianEntity.getTechName()+". "+
+							"Contact No:"+technicianEntity.getTechPhoneNo()+". ";
+					smsContent = smsContent.replaceAll(" ", "%20");
+					notificationSender.sendNotification(customerInfo.getCustomerInfoKey().getMobileNo(),smsContent);
+				} catch (MessagingException | UnirestException e) {
+					e.printStackTrace();
+				}
 				return responseDTO;
 			}
 		} else {
@@ -119,7 +131,7 @@ public class SupportAndComplaintsService {
 		replies.add(reply);
 	}
 
-	private void assignTechnician(TechnicianEntity technician, CustomerInfo customerInfo, String scheduleTime)
+	private long assignTechnician(TechnicianEntity technician, CustomerInfo customerInfo, String scheduleTime)
 			throws ParseException {
 		TechnicianAssignmentPoolEntity technicianAssignmentPoolEntity = new TechnicianAssignmentPoolEntity();
 		technicianAssignmentPoolEntity.setCustomerInfo(customerInfo.getCustomerInfoKey());
@@ -130,7 +142,8 @@ public class SupportAndComplaintsService {
 		nextAvailableDate.setSeconds(0);
 		technicianAssignmentPoolEntity.setNextAvailableTime(DATE_FORMAT.format(nextAvailableDate));
 		technicianAssignmentPoolEntity.setTechId(technician.getTechId());
-		technicianAssignmentRepository.save(technicianAssignmentPoolEntity);
+		technicianAssignmentPoolEntity = technicianAssignmentRepository.save(technicianAssignmentPoolEntity);
+		return technicianAssignmentPoolEntity.getAssignmentId();
 
 	}
 
