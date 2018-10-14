@@ -56,11 +56,11 @@ public class SupportAndComplaintsService {
 				for (TechnicianEntity technician : technicians) {
 					if (checkTechnicianAvailability(technician, scheduleTime)) {
 						long serviceReqId = assignTechnician(technician, customerInfo, scheduleTime);
-						content = "Serive Request : "+serviceReqId+" has been created.\r\n"+
+						content = "Service Request : "+serviceReqId+" has been created.\r\n"+
 								  "Technician has been assigned for "+scheduleTime+".\r\n"+
 								  "Your Technician details:\r\n"+
 								  "Name: "+technician.getTechName()+".\r\n"+
-								  "Contact Number: "+technician.getTechPhoneNo()+".\r\n"+
+								  "Contact Number :"+technician.getTechPhoneNo()+".\r\n"+
 								  "You will be receiving sms notification on your registered number.";
 						
 						prepareResponseDTO(replies,content);
@@ -81,11 +81,11 @@ public class SupportAndComplaintsService {
 				}
 			} else {
 				long serviceReqId = assignTechnician(technicianEntity, customerInfo, scheduleTime);
-				content = "Serive Request : "+serviceReqId+" has been created.\r\n"+
+				content = "Service Request : "+serviceReqId+" has been created.\r\n"+
 						"Technician has been assigned for "+scheduleTime+". \r\n"+
 						"Your Technician details: \r\n"+
 						"Name: "+technicianEntity.getTechName()+" .\r\n"+
-						"Contact Number: "+technicianEntity.getTechPhoneNo()+" .\r\n"+
+						"Contact Number :"+technicianEntity.getTechPhoneNo()+" .\r\n"+
 						"You will be receiving sms notification on your registered number.";
 				prepareResponseDTO(replies,content);
 				responseDTO.setStatus(HttpStatus.OK.value() + "");
