@@ -56,7 +56,7 @@ public class SupportAndComplaintsService {
 				for (TechnicianEntity technician : technicians) {
 					if (checkTechnicianAvailability(technician, scheduleTime)) {
 						long serviceReqId = assignTechnician(technician, customerInfo, scheduleTime);
-						content = "Service Request :"+serviceReqId+" has been created.\r\n"+
+						content = "Serive Request : "+serviceReqId+" has been created.\r\n"+
 								  "Technician has been assigned for "+scheduleTime+".\r\n"+
 								  "Your Technician details:\r\n"+
 								  "Name: "+technician.getTechName()+".\r\n"+
@@ -81,7 +81,7 @@ public class SupportAndComplaintsService {
 				}
 			} else {
 				long serviceReqId = assignTechnician(technicianEntity, customerInfo, scheduleTime);
-				content = "Service Request : "+serviceReqId+" has been created.\r\n"+
+				content = "Serive Request : "+serviceReqId+" has been created.\r\n"+
 						"Technician has been assigned for "+scheduleTime+". \r\n"+
 						"Your Technician details: \r\n"+
 						"Name: "+technicianEntity.getTechName()+" .\r\n"+
