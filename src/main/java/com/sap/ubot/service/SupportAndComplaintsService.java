@@ -56,18 +56,18 @@ public class SupportAndComplaintsService {
 				for (TechnicianEntity technician : technicians) {
 					if (checkTechnicianAvailability(technician, scheduleTime)) {
 						long serviceReqId = assignTechnician(technician, customerInfo, scheduleTime);
-						content = "Your service request (Serive Request Number:"+serviceReqId+") has been created.\r\n"+
-								  "Your technician has been assigned for "+scheduleTime+".\r\n"+
+						content = "Service Request :"+serviceReqId+" has been created.\r\n"+
+								  "Technician has been assigned for "+scheduleTime+".\r\n"+
 								  "Your Technician details:\r\n"+
 								  "Name: "+technician.getTechName()+".\r\n"+
-								  "Contact No:"+technician.getTechPhoneNo()+".\r\n"+
+								  "Contact Number: "+technician.getTechPhoneNo()+".\r\n"+
 								  "You will be receiving sms notification on your registered number.";
 						
 						prepareResponseDTO(replies,content);
 						responseDTO.setStatus(HttpStatus.OK.value() + "");
 						responseDTO.setReplies(replies);
 						try {
-							String smsContent = "(SR No:"+serviceReqId+")Your technician has been assigned for "+scheduleTime+". "+
+							String smsContent = "(SR No:"+serviceReqId+") Technician has been assigned for "+scheduleTime+". "+
 									"Your Technician details: "+
 									"Name: "+technician.getTechName()+". "+
 									"Contact No:"+technician.getTechPhoneNo()+". ";
@@ -81,17 +81,17 @@ public class SupportAndComplaintsService {
 				}
 			} else {
 				long serviceReqId = assignTechnician(technicianEntity, customerInfo, scheduleTime);
-				content = "Your service request (SR No:"+serviceReqId+") has been created.\r\n"+
-						"Your technician has been assigned for "+scheduleTime+". \r\n"+
+				content = "Service Request : "+serviceReqId+" has been created.\r\n"+
+						"Technician has been assigned for "+scheduleTime+". \r\n"+
 						"Your Technician details: \r\n"+
 						"Name: "+technicianEntity.getTechName()+" .\r\n"+
-						"Contact No:"+technicianEntity.getTechPhoneNo()+" .\r\n"+
+						"Contact Number: "+technicianEntity.getTechPhoneNo()+" .\r\n"+
 						"You will be receiving sms notification on your registered number.";
 				prepareResponseDTO(replies,content);
 				responseDTO.setStatus(HttpStatus.OK.value() + "");
 				responseDTO.setReplies(replies);
 				try {
-					String smsContent = "(SR No:"+serviceReqId+")Your technician has been assigned for "+scheduleTime+". "+
+					String smsContent = "(SR No:"+serviceReqId+")Technician has been assigned for "+scheduleTime+". "+
 							"Your Technician details: "+
 							"Name: "+technicianEntity.getTechName()+". "+
 							"Contact No:"+technicianEntity.getTechPhoneNo()+". ";
@@ -105,8 +105,8 @@ public class SupportAndComplaintsService {
 		} else {
 			return responseDTO;
 		}
-		content = "No Technicians are available for "+scheduleTime+". \r\n"+
-						 "Do you want to schedule for some other time?";
+		content = "No Technicians are available for "+scheduleTime+". \r\n"
+						 /*"Do you want to schedule for some other time?"*/;
 		fallBackResponse(content, responseDTO);
 		responseDTO.setStatus(HttpStatus.OK.value() + "");
 		return responseDTO;
