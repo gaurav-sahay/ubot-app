@@ -56,7 +56,7 @@ public class SupportAndComplaintsService {
 				for (TechnicianEntity technician : technicians) {
 					if (checkTechnicianAvailability(technician, scheduleTime)) {
 						long serviceReqId = assignTechnician(technician, customerInfo, scheduleTime);
-						content = "Your service request (SR No:"+serviceReqId+") has been created.\r\n"+
+						content = "Your service request (Serive Request Number:"+serviceReqId+") has been created.\r\n"+
 								  "Your technician has been assigned for "+scheduleTime+".\r\n"+
 								  "Your Technician details:\r\n"+
 								  "Name: "+technician.getTechName()+".\r\n"+

@@ -26,7 +26,7 @@ public class CustomerDetailsManagementService {
 		CustomerDetails persistedCustDetails = customerDetailsRepository.save(customerDetails);
 		textReply.setType("text");
 		if(persistedCustDetails != null) {
-			textReply.setContent("Generated account number is "+persistedCustDetails.getAccountNumber());
+			textReply.setContent("Welcome aboard"+customerDetails.getCustName()+"! \r\nGenerated account number is "+persistedCustDetails.getAccountNumber());
 		}else { 
 			textReply.setContent("Sorry your account number can't be generated !");
 		}
