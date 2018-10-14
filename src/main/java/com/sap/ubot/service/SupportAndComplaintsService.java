@@ -60,7 +60,7 @@ public class SupportAndComplaintsService {
 								  "Technician has been assigned for "+scheduleTime+".\r\n"+
 								  "Your Technician details:\r\n"+
 								  "Name: "+technician.getTechName()+".\r\n"+
-								  "Contact Number :"+technician.getTechPhoneNo()+".\r\n"+
+								  "Contact Number:"+technician.getTechPhoneNo()+".\r\n"+
 								  "You will be receiving sms notification on your registered number.";
 						
 						prepareResponseDTO(replies,content);
@@ -85,7 +85,7 @@ public class SupportAndComplaintsService {
 						"Technician has been assigned for "+scheduleTime+". \r\n"+
 						"Your Technician details: \r\n"+
 						"Name: "+technicianEntity.getTechName()+" .\r\n"+
-						"Contact Number :"+technicianEntity.getTechPhoneNo()+" .\r\n"+
+						"Contact Number:"+technicianEntity.getTechPhoneNo()+".\r\n"+
 						"You will be receiving sms notification on your registered number.";
 				prepareResponseDTO(replies,content);
 				responseDTO.setStatus(HttpStatus.OK.value() + "");

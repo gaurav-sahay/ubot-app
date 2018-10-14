@@ -112,7 +112,7 @@ public class BillDetailsService {
 					 "Do you want to pay now ?";
 		}else {
 			
-			content = "No outstanding balace.";
+			content = "No outstanding balance.";
 		}
 		
 		reply.setContent(content);
